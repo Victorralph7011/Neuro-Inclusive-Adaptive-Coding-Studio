@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuro-Inclusive Adaptive Coding Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Consolas', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridScroll 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Neon glow mixin styles */
+        .neon-text {
+            color: #fff;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #00ffff,
+                0 0 40px #00ffff,
+                0 0 80px #00ffff,
+                0 0 90px #00ffff,
+                0 0 100px #00ffff;
+        }
+
+        .neon-pink {
+            color: #fff;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #ff00ff,
+                0 0 40px #ff00ff,
+                0 0 80px #ff00ff;
+        }
+
+        .neon-green {
+            color: #fff;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #00ff00,
+                0 0 40px #00ff00,
+                0 0 60px #00ff00;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            position: relative;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .hero::before {
+            content: '< />';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 4rem;
+            color: #00ffff;
+            opacity: 0.1;
+            font-weight: bold;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 20px;
+            animation: flicker 2s infinite alternate;
+            letter-spacing: 2px;
+        }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow:
+                    0 0 5px #fff,
+                    0 0 10px #fff,
+                    0 0 20px #00ffff,
+                    0 0 40px #00ffff,
+                    0 0 80px #00ffff;
+            }
+            20%, 24%, 55% {
+                text-shadow: none;
+            }
+        }
+
+        .tagline {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            margin-bottom: 30px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            opacity: 0;
+            animation: fadeIn 1s ease 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .code-prefix {
+            color: #ff00ff;
+            margin-right: 10px;
+        }
+
+        /* Problem Section - Terminal Style */
+        .problem-section {
+            background: rgba(10, 20, 30, 0.8);
+            border: 2px solid #ff0080;
+            border-radius: 10px;
+            padding: 40px;
+            margin: 60px 0;
+            position: relative;
+            box-shadow: 
+                0 0 20px rgba(255, 0, 128, 0.3),
+                inset 0 0 20px rgba(255, 0, 128, 0.1);
+        }
+
+        .problem-section::before {
+            content: '⚠ ERROR LOG';
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #0a0e27;
+            padding: 5px 15px;
+            color: #ff0080;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .problem-section h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #ff0080;
+            font-family: 'Courier New', monospace;
+        }
+
+        .problem-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .problem-list li {
+            font-size: 1.1rem;
+            margin: 20px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #e0e0e0;
+            animation: slideIn 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .problem-list li:nth-child(1) { animation-delay: 0.2s; }
+        .problem-list li:nth-child(2) { animation-delay: 0.4s; }
+        .problem-list li:nth-child(3) { animation-delay: 0.6s; }
+        .problem-list li:nth-child(4) { animation-delay: 0.8s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .problem-list li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: #ff0080;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Cards Grid - Code Block Style */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+
+        .card {
+            background: rgba(15, 25, 40, 0.9);
+            border: 1px solid;
+            border-radius: 8px;
+            padding: 30px;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .card:nth-child(1) { border-color: #00ffff; }
+        .card:nth-child(2) { border-color: #ff00ff; }
+        .card:nth-child(3) { border-color: #00ff00; }
+        .card:nth-child(4) { border-color: #ffff00; }
+        .card:nth-child(5) { border-color: #ff6600; }
+        .card:nth-child(6) { border-color: #00ffff; }
+
+        .card::before {
+            content: '{ }';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            opacity: 0.2;
+            font-weight: bold;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.7),
+                0 0 30px currentColor;
+        }
+
+        .card:nth-child(1):hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 30px #00ffff; }
+        .card:nth-child(2):hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 30px #ff00ff; }
+        .card:nth-child(3):hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 30px #00ff00; }
+        .card:nth-child(4):hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 30px #ffff00; }
+        .card:nth-child(5):hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 30px #ff6600; }
+        .card:nth-child(6):hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 30px #00ffff; }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .card:nth-child(1) h3 { color: #00ffff; }
+        .card:nth-child(2) h3 { color: #ff00ff; }
+        .card:nth-child(3) h3 { color: #00ff00; }
+        .card:nth-child(4) h3 { color: #ffff00; }
+        .card:nth-child(5) h3 { color: #ff6600; }
+        .card:nth-child(6) h3 { color: #00ffff; }
+
+        .card p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #b0b0b0;
+            font-family: 'Consolas', monospace;
+        }
+
+        /* Features Section - Command Line Style */
+        .features-section {
+            margin: 80px 0;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 4px solid #00ff00;
+        }
+
+        .features-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+        }
+
+        .features-section h2::before {
+            content: '$ ';
+            color: #00ffff;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            padding: 12px 25px;
+            margin: 10px;
+            border: 2px solid;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .feature-badge:nth-child(1) { border-color: #00ffff; color: #00ffff; }
+        .feature-badge:nth-child(2) { border-color: #ff00ff; color: #ff00ff; }
+        .feature-badge:nth-child(3) { border-color: #00ff00; color: #00ff00; }
+        .feature-badge:nth-child(4) { border-color: #ffff00; color: #ffff00; }
+        .feature-badge:nth-child(5) { border-color: #ff6600; color: #ff6600; }
+        .feature-badge:nth-child(6) { border-color: #ff0080; color: #ff0080; }
+
+        .feature-badge:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px currentColor;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Demo Area - IDE Style */
+        .demo-area {
+            background: rgba(10, 15, 25, 0.95);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 60px 40px;
+            margin: 60px 0;
+            text-align: center;
+            position: relative;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.3),
+                inset 0 0 30px rgba(0, 255, 255, 0.05);
+        }
+
+        .demo-area::before {
+            content: '<!-- DEMO -->';
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            color: #00ffff;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .demo-area h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .demo-area p {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            color: #b0b0b0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 45px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: transparent;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 255, 255, 0.2);
+            transition: left 0.3s ease;
+        }
+
+        .cta-button:hover::before {
+            left: 0;
+        }
+
+        .cta-button:hover {
+            box-shadow: 
+                0 0 20px #00ffff,
+                inset 0 0 20px rgba(0, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* Impact Grid */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin: 60px 0;
+        }
+
+        .impact-card {
+            background: rgba(20, 30, 45, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .impact-card::before {
+            content: '//';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            color: #00ffff;
+            opacity: 0.3;
+            font-size: 1.2rem;
+        }
+
+        .impact-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        .impact-card h4 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+        }
+
+        .impact-card p {
+            color: #b0b0b0;
+            line-height: 1.6;
+        }
+
+        /* Tech Stack - Syntax Highlighting Style */
+        .tech-stack {
+            margin: 80px 0;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+        }
+
+        .tech-stack h2 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #ff00ff;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+
+        .tech-badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .tech-badge {
+            background: rgba(30, 40, 55, 0.9);
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 1rem;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            color: #00ffff;
+        }
+
+        .tech-badge:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            transform: translateY(-3px);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            margin-top: 80px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .footer p {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            color: #b0b0b0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .footer p span {
+            color: #00ffff;
+        }
+
+        /* Scanline effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                rgba(0, 255, 255, 0.02) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: scanline 10s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .problem-section {
+                padding: 30px;
+            }
+        }
+
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #00ffff;
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 5px #00ffff;
+            animation: float 10s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1 class="neon-text">&lt; Neuro-Inclusive Adaptive Coding Studio /&gt;</h1>
+            <p class="tagline"><span class="code-prefix">$</span>Empowering Every Mind to Code with Confidence</p>
+        </div>
+
+        <!-- Problem Section -->
+        <div class="problem-section">
+            <h2>// ERROR: Current Coding Environment Issues</h2>
+            <ul class="problem-list">
+                <li>Coding environments are not designed for neurodiverse learners</li>
+                <li>Information overload, distracting interfaces, and visual fatigue</li>
+                <li>Lack of tailored guidance or alternative input methods (like voice)</li>
+                <li>Anxiety from error messages and unclear debugging processes</li>
+            </ul>
+        </div>
+
+        <!-- Key Features Cards -->
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-icon">🎨</div>
+                <h3>customizable_flow()</h3>
+                <p>Choose Minimal, Chunked Task, or Social modes that adapt to your working style and cognitive preferences.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🎭</div>
+                <h3>sensory_control()</h3>
+                <p>Adjust colors, animation speed, sounds, and gentle haptics to create your perfect coding environment.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🤖</div>
+                <h3>ai_guidance()</h3>
+                <p>Get support through text, audio, visual, or symbol-assisted documentation in your preferred format.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🎮</div>
+                <h3>gamified_debug()</h3>
+                <p>Turn challenges into achievements with encouraging feedback and gentle break reminders.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">👥</div>
+                <h3>collaboration_pods()</h3>
+                <p>Connect with peers in opt-in social spaces designed for comfortable interaction.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🌟</div>
+                <h3>stigma_free()</h3>
+                <p>All adaptive features are always optional and designed with dignity and respect.</p>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features-section">
+            <h2>features --all</h2>
+            <div>
+                <span class="feature-badge">personalized_learning</span>
+                <span class="feature-badge">emotional_support</span>
+                <span class="feature-badge">diversity_inclusion</span>
+                <span class="feature-badge">optimal_productivity</span>
+                <span class="feature-badge">cognitive_tuning</span>
+                <span class="feature-badge">peer_network</span>
+            </div>
+        </features-section>
+
+        <!-- Interactive Demo Area -->
+        <div class="demo-area">
+            <h2 class="neon-text">/* Experience the Future */</h2>
+            <p>An IDE that learns and adapts to your unique learning style over sessions</p>
+            <button class="cta-button" onclick="handleCTA()">INITIALIZE() →</button>
+        </div>
+
+        <!-- Impact Grid -->
+        <div class="impact-grid">
+            <div class="impact-card">
+                <h4>personalized</h4>
+                <p>Offers personalized help beyond generic hints, adapting to individual needs</p>
+            </div>
+            <div class="impact-card">
+                <h4>supportive</h4>
+                <p>Provides safe peer support and feedback in comfortable environments</p>
+            </div>
+            <div class="impact-card">
+                <h4>inclusive</h4>
+                <p>Promotes equity in software development and welcomes all learners</p>
+            </div>
+            <div class="impact-card">
+                <h4>productive</h4>
+                <p>Helps learners find their ideal workflow and concentration mode</p>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="tech-stack">
+            <h2>// TECH_STACK</h2>
+            <div class="tech-badges">
+                <div class="tech-badge">speech_to_text.api</div>
+                <div class="tech-badge">cloud_tts.google</div>
+                <div class="tech-badge">debug.games</div>
+                <div class="tech-badge">aria.accessibility</div>
+                <div class="tech-badge">font.contrast</div>
+                <div class="tech-badge">collaboration.live</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>// Making coding <span>enjoyable</span> for neurodiverse learners</p>
+            <p>/* Building a more <span>inclusive</span> tech future */</p>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                document.body.appendChild(particle);
+            }
+        }
+
+        createParticles();
+
+        // Card hover effects with glow
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.zIndex = '10';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.zIndex = '1';
+            });
+        });
+
+        // CTA Button Action
+        function handleCTA() {
+            const button = event.target;
+            button.textContent = 'LOADING...';
+            
+            setTimeout(() => {
+                button.textContent = 'SUCCESS! →';
+                setTimeout(() => {
+                    alert('🚀 Welcome to the future of inclusive coding! Your journey begins now.');
+                    button.textContent = 'INITIALIZE() →';
+                }, 500);
+            }, 1000);
+        }
+
+        // Typing effect for tagline
+        const tagline = document.querySelector('.tagline');
+        const text = tagline.textContent;
+        tagline.textContent = '';
+        let i = 0;
+
+        function typeWriter() {
+            if (i < text.length) {
+                tagline.textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+
+        setTimeout(typeWriter, 1000);
+
+        // Random glitch effect on title
+        setInterval(() => {
+            const title = document.querySelector('.hero h1');
+            title.style.textShadow = `
+                0 0 5px #fff,
+                ${Math.random() * 10 - 5}px ${Math.random() * 10 - 5}px 10px #00ffff,
+                0 0 20px #00ffff,
+                0 0 40px #00ffff,
+                0 0 80px #00ffff
+            `;
+        }, 3000);
+
+        // Scroll reveal animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card, .impact-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Matrix rain effect (optional - lightweight version)
+        const canvas = document.createElement('canvas');
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.opacity = '0.05';
+        canvas.style.zIndex = '0';
+        document.body.prepend(canvas);
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = '01';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(10, 14, 39, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ffff';
+            ctx.font = fontSize + 'px monospace';
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>

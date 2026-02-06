@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor - Neuro-Inclusive Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #0a0e27;
+            color: #d4d4d4;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridScroll 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        /* Scanline Effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                rgba(0, 255, 255, 0.02) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: scanline 10s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar - Neon Style */
+        .top-bar {
+            background: rgba(15, 20, 35, 0.95);
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            color: #00ffff;
+            font-weight: bold;
+            margin-right: 30px;
+            text-shadow: 0 0 10px #00ffff;
+            font-size: 14px;
+        }
+
+        .menu-item {
+            padding: 0 15px;
+            font-size: 13px;
+            color: #cccccc;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .title {
+            margin-left: auto;
+            font-size: 12px;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        /* Main Container */
+        .editor-container {
+            display: flex;
+            height: calc(100vh - 62px);
+            flex: 1;
+        }
+
+        /* Sidebar - Neon Glow */
+        .sidebar {
+            width: 60px;
+            background: rgba(20, 25, 40, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 15px;
+            border-right: 2px solid rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .sidebar-icon {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .sidebar-icon:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-left-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .sidebar-icon.active {
+            border-left-color: #00ffff;
+            background: rgba(0, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* File Explorer - Dark Neon */
+        .explorer {
+            width: 280px;
+            background: rgba(15, 20, 30, 0.95);
+            border-right: 2px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        .explorer-header {
+            padding: 15px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #00ffff;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
+        .file-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .file-item {
+            padding: 8px 20px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .file-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-left-color: #00ffff;
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+
+        .file-item.active {
+            background: rgba(0, 255, 255, 0.15);
+            border-left-color: #00ffff;
+            color: #00ffff;
+            box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+
+        .file-icon {
+            margin-right: 10px;
+            font-size: 16px;
+            filter: drop-shadow(0 0 3px currentColor);
+        }
+
+        .folder-item {
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            color: #ff00ff;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+        }
+
+        .folder-item:hover {
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        /* Main Editor Area */
+        .main-editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(10, 14, 25, 0.95);
+        }
+
+        /* Tabs - Neon Style */
+        .tabs-container {
+            background: rgba(20, 25, 35, 0.95);
+            display: flex;
+            height: 40px;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .tab {
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            background: rgba(15, 20, 30, 0.8);
+            border-right: 1px solid rgba(0, 255, 255, 0.2);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: rgba(10, 14, 25, 0.95);
+            border-top: 2px solid #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(0, 255, 255, 0.05);
+        }
+
+        .tab-close {
+            margin-left: 15px;
+            font-size: 18px;
+            opacity: 0.6;
+            transition: all 0.2s;
+        }
+
+        .tab-close:hover {
+            opacity: 1;
+            color: #ff0080;
+            text-shadow: 0 0 10px #ff0080;
+        }
+
+        /* Toolbar - Action Buttons */
+        .toolbar {
+            background: rgba(15, 20, 30, 0.9);
+            padding: 10px 15px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            align-items: center;
+        }
+
+        .toolbar-btn {
+            padding: 8px 15px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .toolbar-btn:active {
+            transform: translateY(0);
+        }
+
+        .toolbar-btn.run {
+            border-color: #00ff00;
+            color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .toolbar-btn.run:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        .toolbar-btn.save {
+            border-color: #ff00ff;
+            color: #ff00ff;
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        .toolbar-btn.save:hover {
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 25px;
+            background: rgba(0, 255, 255, 0.3);
+            margin: 0 5px;
+        }
+
+        /* Code Editor */
+        .code-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .line-numbers {
+            background: rgba(10, 14, 25, 0.95);
+            color: #666;
+            padding: 20px 15px;
+            text-align: right;
+            font-size: 14px;
+            line-height: 21px;
+            user-select: none;
+            min-width: 60px;
+            border-right: 2px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .code-editor {
+            flex: 1;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 21px;
+            overflow: auto;
+            background: rgba(10, 14, 25, 0.95);
+            color: #d4d4d4;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            white-space: pre;
+            tab-size: 4;
+            caret-color: #00ffff;
+        }
+
+        .code-editor::selection {
+            background: rgba(0, 255, 255, 0.3);
+        }
+
+        /* Status Bar - Neon Glow */
+        .status-bar {
+            background: rgba(0, 122, 204, 0.9);
+            height: 24px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 12px;
+            color: #fff;
+            justify-content: space-between;
+            border-top: 1px solid rgba(0, 255, 255, 0.5);
+            box-shadow: 0 -2px 10px rgba(0, 122, 204, 0.3);
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-item:hover {
+            text-shadow: 0 0 10px #fff;
+        }
+
+        /* Adaptive Controls Panel - Enhanced */
+        .adaptive-panel {
+            position: fixed;
+            right: 20px;
+            top: 70px;
+            background: rgba(15, 20, 35, 0.98);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.5),
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(20px);
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .adaptive-panel.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .panel-title {
+            color: #00ffff;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-slider {
+            width: 220px;
+            height: 6px;
+            background: rgba(0, 255, 255, 0.2);
+            outline: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            width: 16px;
+            height: 16px;
+            background: #00ffff;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .mode-button {
+            padding: 10px 18px;
+            margin: 5px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .mode-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .mode-button.active {
+            background: #00ffff;
+            color: #0a0e27;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        /* Output Console */
+        .output-console {
+            position: fixed;
+            bottom: 0;
+            left: 60px;
+            right: 0;
+            height: 0;
+            background: rgba(10, 14, 25, 0.98);
+            border-top: 2px solid rgba(0, 255, 255, 0.3);
+            transition: height 0.3s ease;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .output-console.show {
+            height: 250px;
+        }
+
+        .console-header {
+            background: rgba(15, 20, 35, 0.95);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .console-title {
+            color: #00ff00;
+            font-size: 12px;
+            font-weight: 600;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+        }
+
+        .console-close {
+            cursor: pointer;
+            color: #ff0080;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .console-close:hover {
+            text-shadow: 0 0 10px #ff0080;
+        }
+
+        .console-content {
+            padding: 15px;
+            height: calc(100% - 45px);
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .console-line {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .console-line.success {
+            color: #00ff00;
+        }
+
+        .console-line.error {
+            color: #ff0080;
+        }
+
+        .console-line.info {
+            color: #00ffff;
+        }
+
+        /* Notification Toast */
+        .notification {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: rgba(15, 20, 35, 0.98);
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        .notification.error {
+            border-color: #ff0080;
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(10, 14, 25, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 6px;
+            border: 2px solid rgba(10, 14, 25, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .explorer {
+                width: 200px;
+            }
+            
+            .sidebar {
+                width: 50px;
+            }
+
+            .adaptive-panel {
+                right: 10px;
+                top: 60px;
+                max-width: calc(100vw - 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="logo">&lt;/&gt; Neuro-IDE</div>
+            <div class="menu-item">File</div>
+            <div class="menu-item">Edit</div>
+            <div class="menu-item">Selection</div>
+            <div class="menu-item">View</div>
+            <div class="menu-item">Run</div>
+            <div class="menu-item">Terminal</div>
+            <div class="menu-item">Help</div>
+            <div class="title">Neuro-Inclusive Adaptive Coding Studio</div>
+        </div>
+
+        <!-- Main Container -->
+        <div class="editor-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-icon active" title="Explorer" onclick="toggleExplorer()">📁</div>
+                <div class="sidebar-icon" title="Search">🔍</div>
+                <div class="sidebar-icon" title="Source Control">🔀</div>
+                <div class="sidebar-icon" title="Extensions">🧩</div>
+                <div class="sidebar-icon" onclick="toggleAdaptivePanel()" title="Adaptive Settings">🎨</div>
+                <div class="sidebar-icon" onclick="toggleAIAssistant()" title="AI Assistant">🤖</div>
+            </div>
+
+            <!-- File Explorer -->
+            <div class="explorer" id="explorerPanel">
+                <div class="explorer-header">// PROJECT FILES</div>
+                <div class="file-tree">
+                    <div class="folder-item">
+                        <span style="margin-right: 8px;">▼</span> neuro-inclusive-ide
+                    </div>
+                    <div class="file-item active" onclick="loadFile('neuro-ide.js')">
+                        <span class="file-icon">📄</span> neuro-ide.js
+                    </div>
+                    <div class="file-item" onclick="loadFile('adaptive-learning.js')">
+                        <span class="file-icon">📄</span> adaptive-learning.js
+                    </div>
+                    <div class="file-item" onclick="loadFile('sensory-controls.js')">
+                        <span class="file-icon">📄</span> sensory-controls.js
+                    </div>
+                    <div class="file-item" onclick="loadFile('ai-assistant.js')">
+                        <span class="file-icon">📄</span> ai-assistant.js
+                    </div>
+                    <div class="folder-item">
+                        <span style="margin-right: 8px;">▼</span> styles
+                    </div>
+                    <div class="file-item" onclick="loadFile('theme.css')" style="padding-left: 40px;">
+                        <span class="file-icon">🎨</span> theme.css
+                    </div>
+                    <div class="folder-item">
+                        <span style="margin-right: 8px;">▼</span> docs
+                    </div>
+                    <div class="file-item" onclick="loadFile('README.md')" style="padding-left: 40px;">
+                        <span class="file-icon">📖</span> README.md
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Editor -->
+            <div class="main-editor">
+                <!-- Tabs -->
+                <div class="tabs-container">
+                    <div class="tab active">
+                        <span id="tabName">neuro-ide.js</span>
+                        <span class="tab-close">×</span>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <button class="toolbar-btn run" onclick="runCode()">
+                        ▶ Run Code
+                    </button>
+                    <button class="toolbar-btn save" onclick="saveFile()">
+                        💾 Save
+                    </button>
+                    <button class="toolbar-btn" onclick="formatCode()">
+                        ✨ Format
+                    </button>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" onclick="undoAction()">
+                        ↶ Undo
+                    </button>
+                    <button class="toolbar-btn" onclick="redoAction()">
+                        ↷ Redo
+                    </button>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" onclick="toggleConsole()">
+                        📟 Console
+                    </button>
+                    <button class="toolbar-btn" onclick="clearEditor()">
+                        🗑️ Clear
+                    </button>
+                </div>
+
+                <!-- Code Editor Area -->
+                <div class="code-area">
+                    <div class="line-numbers" id="lineNumbers"></div>
+                    <textarea class="code-editor" id="codeEditor" spellcheck="false" placeholder="// Start coding here..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Console -->
+        <div class="output-console" id="outputConsole">
+            <div class="console-header">
+                <div class="console-title">⚡ OUTPUT CONSOLE</div>
+                <div class="console-close" onclick="toggleConsole()">×</div>
+            </div>
+            <div class="console-content" id="consoleContent">
+                <div class="console-line info">// Console ready. Run your code to see output.</div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <div class="status-item">⚡ Neuro-Inclusive Mode: <span style="color: #00ff00;">Active</span></div>
+                <div class="status-item">📝 JavaScript</div>
+                <div class="status-item">UTF-8</div>
+            </div>
+            <div class="status-right">
+                <div class="status-item">Ln <span id="lineNum">1</span>, Col <span id="colNum">1</span></div>
+                <div class="status-item">Spaces: 4</div>
+                <div class="status-item">⭐ <span id="encouragement">Keep coding!</span></div>
+            </div>
+        </div>
+
+        <!-- Adaptive Controls Panel -->
+        <div class="adaptive-panel" id="adaptivePanel">
+            <div class="panel-title">🎨 ADAPTIVE CONTROLS</div>
+            
+            <div class="control-group">
+                <label class="control-label">FLOW MODE</label>
+                <button class="mode-button active" onclick="setFlowMode(this, 'minimal')">Minimal</button>
+                <button class="mode-button" onclick="setFlowMode(this, 'chunked')">Chunked Task</button>
+                <button class="mode-button" onclick="setFlowMode(this, 'social')">Social</button>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">FONT SIZE: <span id="fontSizeValue">14px</span></label>
+                <input type="range" class="control-slider" min="10" max="24" value="14" oninput="changeFontSize(this.value)">
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">LINE SPACING: <span id="lineSpaceValue">21px</span></label>
+                <input type="range" class="control-slider" min="18" max="32" value="21" oninput="changeLineHeight(this.value)">
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">ANIMATION SPEED</label>
+                <input type="range" class="control-slider" min="0.5" max="2" step="0.1" value="1" oninput="changeAnimationSpeed(this.value)">
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">COLOR THEME</label>
+                <button class="mode-button active" onclick="setTheme('neon')">Neon Dark</button>
+                <button class="mode-button" onclick="setTheme('contrast')">High Contrast</button>
+            </div>
+
+            <div class="control-group">
+                <button class="mode-button" style="width: 100%;" onclick="startVoiceInput()">🎤 Voice Input</button>
+                <button class="mode-button" style="width: 100%; margin-top: 8px;" onclick="readCodeAloud()">🔊 Read Aloud</button>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div class="notification" id="notification">
+            <span id="notificationText"></span>
+        </div>
+    </div>
+
+    <script>
+        // File content templates (same as before)
+        const fileContents = {
+            'neuro-ide.js': `// Neuro-Inclusive Adaptive Coding Studio
+// Main IDE Controller
+
+class NeuroInclusiveIDE {
+    constructor(config) {
+        this.config = config;
+        this.adaptiveSettings = {
+            flowMode: 'minimal',
+            sensoryProfile: {},
+            aiAssistance: true
+        };
+    }
+
+    // Initialize the IDE with personalized settings
+    initialize() {
+        this.loadUserProfile();
+        this.setupAdaptiveControls();
+        this.enableAIGuidance();
+        console.log('✓ Neuro-Inclusive IDE initialized');
+    }
+
+    // Load user's cognitive preferences
+    loadUserProfile() {
+        const profile = localStorage.getItem('neuro-profile');
+        if (profile) {
+            this.adaptiveSettings = JSON.parse(profile);
+        }
+        return this.adaptiveSettings;
+    }
+
+    // Setup customizable flow modes
+    setupAdaptiveControls() {
+        const modes = ['minimal', 'chunked-task', 'social'];
+        modes.forEach(mode => {
+            this.registerFlowMode(mode);
+        });
+    }
+
+    // Enable AI-powered guidance
+    enableAIGuidance() {
+        this.aiAssistant = new AIGuidanceSystem({
+            formats: ['text', 'audio', 'visual', 'symbol-assisted'],
+            personalized: true
+        });
+    }
+
+    // Gamified debugging system
+    debugWithEncouragement(error) {
+        return {
+            message: error.message,
+            encouragement: '🎮 Great effort! Let\\'s solve this together.',
+            hints: this.aiAssistant.getContextualHints(error),
+            achievement: this.unlockAchievement('problem-solver')
+        };
+    }
+}
+
+// Export for use in other modules
+export default NeuroInclusiveIDE;`,
+
+            'adaptive-learning.js': `// Adaptive Learning Engine
+// Learns from user patterns and adjusts IDE behavior
+
+class AdaptiveLearningEngine {
+    constructor() {
+        this.learningData = {
+            codingPatterns: [],
+            preferredFeatures: new Set(),
+            cognitiveLoad: 0
+        };
+    }
+
+    // Track user coding patterns
+    trackPattern(event) {
+        this.learningData.codingPatterns.push({
+            timestamp: Date.now(),
+            action: event.type,
+            context: event.context
+        });
+        
+        this.adjustInterface();
+    }
+
+    // Adjust interface based on detected patterns
+    adjustInterface() {
+        const cognitiveLoad = this.calculateCognitiveLoad();
+        
+        if (cognitiveLoad > 0.7) {
+            this.suggestBreak();
+            this.simplifyInterface();
+        }
+    }
+
+    // Calculate current cognitive load
+    calculateCognitiveLoad() {
+        // Analysis algorithm here
+        return this.learningData.cognitiveLoad;
+    }
+
+    // Suggest gentle break reminders
+    suggestBreak() {
+        console.log('💜 Time for a quick break!');
+    }
+}
+
+export default AdaptiveLearningEngine;`,
+
+            'sensory-controls.js': `// Sensory Control System
+// Full control over colors, animations, sounds, and haptics
+
+class SensoryControls {
+    constructor() {
+        this.settings = {
+            colorScheme: 'neon-dark',
+            animationSpeed: 1.0,
+            soundEnabled: true,
+            hapticsEnabled: false,
+            fontSize: 14,
+            lineSpacing: 21
+        };
+    }
+
+    // Adjust color scheme for visual comfort
+    setColorScheme(scheme) {
+        const schemes = {
+            'neon-dark': {
+                background: '#1e1e1e',
+                text: '#d4d4d4',
+                accent: '#00ffff'
+            },
+            'high-contrast': {
+                background: '#000000',
+                text: '#ffffff',
+                accent: '#00ff00'
+            },
+            'soft-light': {
+                background: '#f5f5f5',
+                text: '#333333',
+                accent: '#0066cc'
+            }
+        };
+        
+        this.applyTheme(schemes[scheme]);
+    }
+
+    // Control animation speed
+    setAnimationSpeed(speed) {
+        document.documentElement.style.setProperty(
+            '--animation-speed',
+            speed + 's'
+        );
+    }
+
+    // Enable/disable gentle haptic feedback
+    toggleHaptics(enabled) {
+        this.settings.hapticsEnabled = enabled;
+        if (enabled && 'vibrate' in navigator) {
+            navigator.vibrate(50);
+        }
+    }
+}
+
+export default SensoryControls;`,
+
+            'ai-assistant.js': `// AI-Powered Guidance System
+// Multiformat assistance with personalized support
+
+class AIGuidanceSystem {
+    constructor(options) {
+        this.formats = options.formats;
+        this.personalized = options.personalized;
+    }
+
+    // Provide contextual hints based on code
+    getContextualHints(error) {
+        const hints = {
+            syntax: '💡 Check for missing semicolons or brackets',
+            logic: '🎯 Try breaking down the problem into smaller steps',
+            reference: '📚 Similar pattern found in your previous work'
+        };
+        
+        return this.selectBestHint(error, hints);
+    }
+
+    // Generate audio explanation
+    async generateAudioGuidance(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            speechSynthesis.speak(utterance);
+        }
+    }
+
+    // Visual guidance with symbol-assisted docs
+    createVisualGuide(concept) {
+        return {
+            diagram: this.generateDiagram(concept),
+            symbols: this.getSymbols(concept),
+            examples: this.getExamples(concept)
+        };
+    }
+
+    // Encouraging feedback system
+    provideFeedback(action) {
+        const encouragements = [
+            '🌟 Excellent progress!',
+            '💪 You\\'re getting stronger at this!',
+            '🎉 Great debugging skills!',
+            '✨ Keep up the amazing work!'
+        ];
+        
+        return encouragements[Math.floor(Math.random() * encouragements.length)];
+    }
+}
+
+export default AIGuidanceSystem;`,
+
+            'theme.css': `/* Neuro-Inclusive IDE Theme */
+/* Dark neon cyberpunk aesthetic */
+
+:root {
+    --bg-primary: #0a0e27;
+    --bg-secondary: #15192d;
+    --bg-tertiary: #1f2333;
+    --text-primary: #d4d4d4;
+    --text-secondary: #858585;
+    --accent-cyan: #00ffff;
+    --accent-magenta: #ff00ff;
+    --accent-green: #00ff00;
+    --accent-yellow: #ffff00;
+    --border-color: rgba(0, 255, 255, 0.3);
+}
+
+/* Editor styling */
+.editor {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+/* Syntax highlighting colors */
+.keyword { color: #c586c0; }
+.string { color: #ce9178; }
+.comment { color: #6a9955; }
+.function { color: #dcdcaa; }
+.variable { color: #9cdcfe; }
+.number { color: #b5cea8; }
+
+/* Neon glow effects */
+.glow-cyan {
+    text-shadow: 0 0 10px var(--accent-cyan);
+}
+
+/* Adaptive controls */
+.minimal-mode {
+    --border-width: 0;
+    --animation-duration: 0s;
+}
+
+.focus-mode {
+    filter: contrast(1.1);
+}`,
+
+            'README.md': `# 🧠 Neuro-Inclusive Adaptive Coding Studio
+
+## Mission
+Empowering neurodiverse learners to code with confidence through adaptive, personalized IDE features.
+
+## Key Features
+
+### 🎨 Customizable Flow Modes
+- **Minimal**: Clean, distraction-free interface
+- **Chunked Task**: Break down coding into manageable pieces
+- **Social**: Optional collaboration with peer support
+
+### 🎭 Full Sensory Control
+- Adjustable colors and contrast
+- Animation speed control
+- Sound and haptic feedback options
+- Custom font sizes and line spacing
+
+### 🤖 Multiformat AI Guidance
+- Text-based hints and suggestions
+- Audio explanations via text-to-speech
+- Visual diagrams and symbol-assisted docs
+- Personalized learning paths
+
+### 🎮 Gamified Debugging
+- Encouraging feedback on errors
+- Achievement system for milestones
+- Gentle break reminders
+- Progress tracking
+
+## Getting Started
+
+\`\`\`javascript
+import NeuroInclusiveIDE from './neuro-ide.js';
+
+const ide = new NeuroInclusiveIDE({
+    adaptiveMode: true,
+    aiAssistance: true
+});
+
+ide.initialize();
+\`\`\`
+
+---
+💜 Building a more inclusive tech future
+`
+        };
+
+        // Initialize editor
+        const codeEditor = document.getElementById('codeEditor');
+        const lineNumbers = document.getElementById('lineNumbers');
+        let editHistory = [];
+        let historyIndex = -1;
+
+        // Load initial file
+        loadFile('neuro-ide.js');
+
+        // Update line numbers
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split('\n').length;
+            lineNumbers.innerHTML = Array.from({length: Math.max(lines, 20)}, (_, i) => i + 1).join('\n');
+        }
+
+        // Update cursor position
+        function updateCursorPosition() {
+            const text = codeEditor.value.substring(0, codeEditor.selectionStart);
+            const lines = text.split('\n');
+            document.getElementById('lineNum').textContent = lines.length;
+            document.getElementById('colNum').textContent = lines[lines.length - 1].length + 1;
+            
+            // Update encouragement
+            const encouragements = [
+                'You\'re doing great!',
+                'Keep coding!',
+                'Awesome progress!',
+                'You got this!',
+                'Great work!'
+            ];
+            document.getElementById('encouragement').textContent = 
+                encouragements[Math.floor(Math.random() * encouragements.length)];
+        }
+
+        // Load file content
+        function loadFile(filename) {
+            codeEditor.value = fileContents[filename] || '// New file\n';
+            updateLineNumbers();
+            
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.includes(filename)) {
+                    item.classList.add('active');
+                }
+            });
+
+            document.getElementById('tabName').textContent = filename;
+            showNotification(`✓ Loaded ${filename}`, 'success');
+        }
+
+        // Event listeners
+        codeEditor.addEventListener('input', () => {
+            updateLineNumbers();
+            updateCursorPosition();
+        });
+
+        codeEditor.addEventListener('keyup', updateCursorPosition);
+        codeEditor.addEventListener('click', updateCursorPosition);
+
+        codeEditor.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = codeEditor.scrollTop;
+        });
+
+        // Tab key support
+        codeEditor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = codeEditor.selectionStart;
+                const end = codeEditor.selectionEnd;
+                codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
+                codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
+                updateLineNumbers();
+            }
+        });
+
+        // Toolbar Functions
+        function runCode() {
+            showNotification('🚀 Running code...', 'info');
+            const consoleContent = document.getElementById('consoleContent');
+            
+            setTimeout(() => {
+                const output = `
+<div class="console-line info">⚡ Starting execution...</div>
+<div class="console-line success">✓ Code compiled successfully</div>
+<div class="console-line success">✓ Neuro-Inclusive IDE initialized</div>
+<div class="console-line info">📊 Output: Program executed without errors</div>
+<div class="console-line success">🎉 Execution completed! Great job!</div>
+                `;
+                consoleContent.innerHTML = output;
+                toggleConsole(true);
+                showNotification('✓ Code executed successfully!', 'success');
+            }, 1000);
+        }
+
+        function saveFile() {
+            showNotification('💾 File saved successfully!', 'success');
+            
+            // Haptic feedback if supported
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+        }
+
+        function formatCode() {
+            showNotification('✨ Code formatted!', 'success');
+            // Basic formatting simulation
+            const formatted = codeEditor.value
+                .split('\n')
+                .map(line => line.trim())
+                .join('\n');
+            codeEditor.value = formatted;
+            updateLineNumbers();
+        }
+
+        function undoAction() {
+            showNotification('↶ Undo', 'info');
+        }
+
+        function redoAction() {
+            showNotification('↷ Redo', 'info');
+        }
+
+        function clearEditor() {
+            if (confirm('Clear all code? This cannot be undone.')) {
+                codeEditor.value = '// Start fresh...\n';
+                updateLineNumbers();
+                showNotification('🗑️ Editor cleared', 'info');
+            }
+        }
+
+        // Console functions
+        function toggleConsole(forceShow) {
+            const console = document.getElementById('outputConsole');
+            if (forceShow) {
+                console.classList.add('show');
+            } else {
+                console.classList.toggle('show');
+            }
+        }
+
+        // Adaptive panel toggle
+        function toggleAdaptivePanel() {
+            const panel = document.getElementById('adaptivePanel');
+            panel.classList.toggle('show');
+        }
+
+        function toggleExplorer() {
+            const explorer = document.getElementById('explorerPanel');
+            explorer.style.display = explorer.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        // Font size control
+        function changeFontSize(size) {
+            codeEditor.style.fontSize = size + 'px';
+            lineNumbers.style.fontSize = size + 'px';
+            document.getElementById('fontSizeValue').textContent = size + 'px';
+        }
+
+        // Line height control
+        function changeLineHeight(height) {
+            codeEditor.style.lineHeight = height + 'px';
+            lineNumbers.style.lineHeight = height + 'px';
+            document.getElementById('lineSpaceValue').textContent = height + 'px';
+        }
+
+        // Animation speed
+        function changeAnimationSpeed(speed) {
+            document.documentElement.style.setProperty('--animation-speed', (20 / speed) + 's');
+        }
+
+        // Flow mode
+        function setFlowMode(btn, mode) {
+            btn.parentElement.querySelectorAll('.mode-button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            showNotification(`Flow mode: ${mode}`, 'info');
+        }
+
+        // Theme
+        function setTheme(theme) {
+            const buttons = event.target.parentElement.querySelectorAll('.mode-button');
+            buttons.forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            showNotification(`Theme: ${theme}`, 'info');
+        }
+
+        // Voice input
+        function startVoiceInput() {
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                recognition.onstart = () => {
+                    showNotification('🎤 Listening...', 'info');
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    const cursorPos = codeEditor.selectionStart;
+                    codeEditor.value = codeEditor.value.substring(0, cursorPos) + 
+                                      transcript + 
+                                      codeEditor.value.substring(cursorPos);
+                    updateLineNumbers();
+                    showNotification('✓ Voice input added', 'success');
+                };
+                
+                recognition.start();
+            } else {
+                showNotification('Voice input not supported', 'error');
+            }
+        }
+
+        // Read code aloud
+        function readCodeAloud() {
+            if ('speechSynthesis' in window) {
+                const text = codeEditor.value || 'No code to read';
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.8;
+                speechSynthesis.speak(utterance);
+                showNotification('🔊 Reading code aloud...', 'info');
+            } else {
+                showNotification('Text-to-speech not supported', 'error');
+            }
+        }
+
+        // AI Assistant
+        function toggleAIAssistant() {
+            const hints = [
+                '💡 Tip: Use descriptive variable names',
+                '🎯 Try breaking this into smaller functions',
+                '✨ Great progress! Keep going!',
+                '📚 This pattern is commonly used in modern JavaScript'
+            ];
+            const hint = hints[Math.floor(Math.random() * hints.length)];
+            showNotification(hint, 'info');
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const text = document.getElementById('notificationText');
+            
+            text.textContent = message;
+            notification.className = 'notification show';
+            
+            if (type === 'error') {
+                notification.classList.add('error');
+            }
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize
+        updateLineNumbers();
+        
+        // Encouraging messages
+        setInterval(() => {
+            updateCursorPosition();
+        }, 30000);
+    </script>
+</body>
+</html>
